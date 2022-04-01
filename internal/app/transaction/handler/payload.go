@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/go-chi/render"
+	"github.com/micro/go-micro/v3/errors"
 	"math/big"
 	"net/http"
 )
@@ -9,12 +11,22 @@ import (
 type TransactionHandlerFailed struct {
 	HttpCode int    `json:"-"`
 	Message  string `json:"message"`
+	Error    error  `json:"-"`
 }
 
 func (resp *TransactionHandlerFailed) Render(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(resp.HttpCode)
 	return nil
+}
+
+func (resp *TransactionHandlerFailed) RenderWithError(w http.ResponseWriter, r *http.Request) {
+	switch v := resp.Error.(type) {
+	case *errors.Error:
+		_ = render.Render(w, r, &TransactionHandlerFailed{Message: v.Detail, HttpCode: int(v.Code)})
+	default:
+		_ = render.Render(w, r, &TransactionHandlerFailed{Message: v.Error(), HttpCode: http.StatusInternalServerError})
+	}
 }
 
 type CreateTransactionRequest struct {

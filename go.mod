@@ -22,7 +22,8 @@ require (
 	github.com/go-pg/pg/v9 v9.1.6 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
-	github.com/golang/mock v1.4.3
+	github.com/golang/mock v1.4.3 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/imdario/mergo v0.3.10 // indirect

@@ -9,7 +9,12 @@ type CrudRepositoryWrapper struct {
 	db *pg.DB
 }
 
+var pgDb *pg.DB
+
 func Wrap(db *pg.DB) *CrudRepositoryWrapper {
+	if db == nil {
+		db = pgDb
+	}
 	return &CrudRepositoryWrapper{db: db}
 }
 
@@ -21,9 +26,6 @@ func (wrapper *CrudRepositoryWrapper) Save(model interface{}) error {
 func (wrapper *CrudRepositoryWrapper) Load(model interface{}) error {
 
 	err := wrapper.db.Model(model).WherePK().Select()
-	if err == pg.ErrNoRows {
-		return nil
-	}
 	return err
 }
 

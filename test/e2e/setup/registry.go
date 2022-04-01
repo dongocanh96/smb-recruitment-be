@@ -37,6 +37,7 @@ func InvokeHttpTest(t *testing.T, testFunc func(expect *httpexpect.Expect)) {
 	authentication.Invoke(Container)
 	savings.Invoke(Container)
 	user.Invoke(Container)
+	pg.Invoke(Container)
 	Container.Invoke(func(router chi.Router) {
 		server := httptest.NewServer(router)
 		defer server.Close()

@@ -34,6 +34,7 @@ func invoke() {
 	authentication.Invoke(container)
 	savings.Invoke(container)
 	user.Invoke(container)
+	pg.Invoke(container)
 	err := container.Invoke(func(router chi.Router) error {
 		log.Println("running server ...")
 		return http.ListenAndServe(":8080", router)
