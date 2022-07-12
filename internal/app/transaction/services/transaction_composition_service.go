@@ -26,7 +26,6 @@ func NewTransactionCompositionService(
 }
 
 func (inst *TransactionCompositionServiceImp) CreateTransaction(dto *dto.CreateTransactionDto) (string, error) {
-	dto.
 	return inst.createTransactionService.Invoke(dto)
 }
 
