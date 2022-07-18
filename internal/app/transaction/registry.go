@@ -11,8 +11,9 @@ import (
 )
 
 func Register(container *dig.Container) {
-	container.Provide(func() services.CreateTransactionService {
-		return services.NewCreateTransactionService()
+	container.Provide(func(userSession domain.UserSessionHelper,
+		isOtp domain.OtpCredentialManager, isPin domain.PinCredentialManager) services.CreateTransactionService {
+		return services.NewCreateTransactionService(userSession, isOtp, isPin)
 	})
 
 	container.Provide(func() services.VerifyTransactionService {

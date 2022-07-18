@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/tunaiku/mobilebanking/internal/app/transaction/dto"
 	"github.com/tunaiku/mobilebanking/internal/app/transaction/services"
 	"net/http"
 
@@ -40,6 +41,21 @@ func (transactionEndpoint *TransactionEndpoint) BindRoutes(r chi.Router) {
 }
 
 func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.ResponseWriter, r *http.Request) {
+	requestDto := &dto.CreateTransactionDto{}
+	err := requestDto.Bind(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+		return
+	}
+
+	_, err = transactionEndpoint.transactionService.CreateTransaction(requestDto, r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 
 	render.JSON(w, r, &CreateTransactionSuccess{})
