@@ -1,12 +1,13 @@
 package services
 
 import (
+	"context"
 	"github.com/tunaiku/mobilebanking/internal/app/domain"
 	"github.com/tunaiku/mobilebanking/internal/app/transaction/dto"
 )
 
 type TransactionCompositionService interface {
-	CreateTransaction(dto *dto.CreateTransactionDto) (string, error)
+	CreateTransaction(dto *dto.CreateTransactionDto, ctx context.Context) (string, error)
 	VerifyTransaction(dto *dto.VerifyTransactionDto) error
 	GetTransaction(id string) (domain.Transaction, error)
 }
@@ -25,8 +26,8 @@ func NewTransactionCompositionService(
 	}
 }
 
-func (inst *TransactionCompositionServiceImp) CreateTransaction(dto *dto.CreateTransactionDto) (string, error) {
-	return inst.createTransactionService.Invoke(dto)
+func (inst *TransactionCompositionServiceImp) CreateTransaction(dto *dto.CreateTransactionDto, ctx context.Context) (string, error) {
+	return inst.createTransactionService.Invoke(dto, ctx)
 }
 
 func (inst *TransactionCompositionServiceImp) VerifyTransaction(dto *dto.VerifyTransactionDto) error {

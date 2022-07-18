@@ -11,6 +11,7 @@ require (
 	github.com/go-chi/render v1.0.1
 	github.com/go-pg/migrations/v8 v8.0.0-beta.1
 	github.com/go-pg/pg/v10 v10.0.0-beta.6
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/micro/go-micro/v3 v3.0.0-alpha
