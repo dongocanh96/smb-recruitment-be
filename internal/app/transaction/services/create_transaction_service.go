@@ -34,19 +34,28 @@ func (service *CreateTransactionServiceImp) Invoke(dto *dto.CreateTransactionDto
 		return "", err
 	}
 
-	transaction := domain.Transaction{
-		ID:                  uuid.New().String(),
-		UserID:              userSession.ID,
-		State:               1,
-		AuthorizationMethod: 1,
-		TransactionCode:     dto.TransactionCode,
-		Amount:              dto.Amount,
-		SourceAccount:       userSession.AccountReference,
-		DestinationAccount:  dto.DestinationAccount,
-		CreatedAt:           time.Now(),
+	transaction := &domain.Transaction{
+		ID:                 uuid.New().String(),
+		UserID:             userSession.ID,
+		State:              domain.Success,
+		TransactionCode:    dto.TransactionCode,
+		Amount:             dto.Amount,
+		SourceAccount:      userSession.AccountReference,
+		DestinationAccount: dto.DestinationAccount,
+		CreatedAt:          time.Now().UTC(),
 	}
 
-	return transaction.ID, pg.Wrap(nil).Save(&transaction)
+	if dto.AuthMethod == alias.AuthMethod1 {
+		transaction.AuthorizationMethod = domain.OtpAuthorization
+	} else {
+		transaction.AuthorizationMethod = domain.PinAuthorization
+	}
+
+	if err = pg.Wrap(nil).Save(transaction); err != nil {
+		return "", err
+	}
+
+	return transaction.ID, nil
 }
 
 func (service *CreateTransactionServiceImp) validate(dto *dto.CreateTransactionDto, userSession domain.UserSession) error {
@@ -69,10 +78,13 @@ func (service *CreateTransactionServiceImp) validate(dto *dto.CreateTransactionD
 }
 
 func GetTransactionPrivileges(transactionCode string) error {
-	if transactionCode != alias.ValidTransactionCode1 && transactionCode != alias.ValidTransactionCode2 {
-		return alias.ErrMessageTransactionCodeNotFound
+	for _, code := range alias.ValidTransactionCode {
+		if transactionCode == code {
+			return nil
+		}
 	}
-	return nil
+
+	return alias.ErrMessageTransactionCodeNotFound
 }
 
 func AmountValidate(amount float64) error {
@@ -83,10 +95,13 @@ func AmountValidate(amount float64) error {
 }
 
 func CheckDestination(destination string) error {
-	if destination != alias.ValidDestination1 && destination != alias.ValidDestination2 {
-		return alias.ErrMessageDestinationNotFound
+	for _, destinationCode := range alias.ValidDestination {
+		if destination == destinationCode {
+			return nil
+		}
 	}
-	return nil
+
+	return alias.ErrMessageDestinationNotFound
 }
 
 func CheckValidMethod(authMethod string, user domain.UserSession) error {

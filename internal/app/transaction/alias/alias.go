@@ -3,14 +3,20 @@ package alias
 import "errors"
 
 const (
-	ValidTransactionCode1 string  = "T001"
-	MinimumAmount         float64 = 10000000
-	ValidTransactionCode2 string  = "T002"
-	ValidDestination1     string  = "10001"
-	ValidDestination2     string  = "10002"
-	AuthMethod2           string  = "PIN"
-	AuthMethod1           string  = "OTP"
+	MinimumAmount float64 = 10000000
+	AuthMethod1   string  = "OTP"
+	AuthMethod2   string  = "PIN"
 )
+
+var ValidTransactionCode = map[int]string{
+	1: "T001",
+	2: "T002",
+}
+
+var ValidDestination = map[int]string{
+	1: "10001",
+	2: "10002",
+}
 
 var (
 	ErrMessageMethodNotAllow          = errors.New("auth method not allowed")
