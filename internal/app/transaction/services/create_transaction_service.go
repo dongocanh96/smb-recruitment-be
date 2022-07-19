@@ -2,12 +2,13 @@ package services
 
 import (
 	"context"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/tunaiku/mobilebanking/internal/app/domain"
 	"github.com/tunaiku/mobilebanking/internal/app/transaction/alias"
 	"github.com/tunaiku/mobilebanking/internal/app/transaction/dto"
 	"github.com/tunaiku/mobilebanking/internal/pkg/pg"
-	"time"
 )
 
 type CreateTransactionService interface {

@@ -1,9 +1,11 @@
 package dto
 
-import "github.com/tunaiku/mobilebanking/internal/app/domain"
+import (
+	"github.com/tunaiku/mobilebanking/internal/app/domain"
+)
 
 type VerifyTransactionDto struct {
-	ID 	string
-	Session     domain.UserSession
-	Credential string
+	ID         string             `json:"ID"`
+	Session    domain.UserSession `json:"session"`
+	Credential string             `json:"credential"`
 }

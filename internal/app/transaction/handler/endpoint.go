@@ -62,7 +62,28 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 }
 
 func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	userSession, err := transactionEndpoint.userSessionHelper.GetFromContext(r.Context())
+	if err != nil {
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+	}
 
+	verifyTransaction := VerifyTransactionRequest{}
+	err = verifyTransaction.Bind(r)
+	if err != nil {
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+	}
+
+	transaction := &dto.VerifyTransactionDto{
+		ID:         id,
+		Session:    userSession,
+		Credential: verifyTransaction.Credential,
+	}
+
+	err = transactionEndpoint.transactionService.VerifyTransaction(transaction, r.Context())
+	if err != nil {
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+	}
 	render.JSON(w, r, &VerifyTransactionSuccess{})
 }
 

@@ -8,7 +8,7 @@ import (
 
 type TransactionCompositionService interface {
 	CreateTransaction(dto *dto.CreateTransactionDto, ctx context.Context) (string, error)
-	VerifyTransaction(dto *dto.VerifyTransactionDto) error
+	VerifyTransaction(dto *dto.VerifyTransactionDto, ctx context.Context) error
 	GetTransaction(id string) (domain.Transaction, error)
 }
 
@@ -30,8 +30,8 @@ func (inst *TransactionCompositionServiceImp) CreateTransaction(dto *dto.CreateT
 	return inst.createTransactionService.Invoke(dto, ctx)
 }
 
-func (inst *TransactionCompositionServiceImp) VerifyTransaction(dto *dto.VerifyTransactionDto) error {
-	return inst.verifyTransactionService.Invoke(dto)
+func (inst *TransactionCompositionServiceImp) VerifyTransaction(dto *dto.VerifyTransactionDto, ctx context.Context) error {
+	return inst.verifyTransactionService.Invoke(dto, ctx)
 }
 
 func (inst *TransactionCompositionServiceImp) GetTransaction(id string) (domain.Transaction, error) {
