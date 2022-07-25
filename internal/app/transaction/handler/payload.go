@@ -73,10 +73,10 @@ func (resp *VerifyTransactionSuccess) Render(w http.ResponseWriter, r *http.Requ
 }
 
 type GetTransactionSuccess struct {
-	ID                 string     `json:"id"`
-	Amount             *big.Float `json:"amount"`
-	DestinationAccount string     `json:"destination_account"`
-	State              string     `json:"state"`
+	ID                 string  `json:"id"`
+	Amount             float64 `json:"amount"`
+	DestinationAccount string  `json:"destination_account"`
+	State              string  `json:"state"`
 }
 
 func (resp *GetTransactionSuccess) Render(w http.ResponseWriter, r *http.Request) error {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/tunaiku/mobilebanking/internal/app/domain"
 	"github.com/tunaiku/mobilebanking/internal/app/transaction/dto"
+	"github.com/tunaiku/mobilebanking/internal/pkg/pg"
 )
 
 type TransactionCompositionService interface {
@@ -36,6 +37,6 @@ func (inst *TransactionCompositionServiceImp) VerifyTransaction(dto *dto.VerifyT
 
 func (inst *TransactionCompositionServiceImp) GetTransaction(id string) (domain.Transaction, error) {
 	transaction := domain.Transaction{ID: id}
-
-	return transaction, nil
+	err := pg.Wrap(nil).Load(&transaction)
+	return transaction, err
 }

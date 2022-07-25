@@ -1,21 +1,44 @@
 package alias
 
-import "errors"
-
-const (
-	MinimumAmount float64 = 10000000
-	AuthMethod1   string  = "OTP"
-	AuthMethod2   string  = "PIN"
+import (
+	"errors"
+	"github.com/tunaiku/mobilebanking/internal/app/domain"
 )
 
-var ValidTransactionCode = map[int]string{
-	1: "T001",
-	2: "T002",
+const (
+	MinimumAmount     float64 = 10000000
+	AuthMethod1       string  = "OTP"
+	AuthMethod2       string  = "PIN"
+	TransactionCode1  string  = "T001"
+	TransactionCode2  string  = "T002"
+	Destination1      string  = "10001"
+	Destination2      string  = "10002"
+	DefaultOtp        string  = "111111"
+	DefaultPin        string  = "123456"
+	WaitAuthorization string  = "WaitAuthorization"
+	Failed            string  = "Failed"
+	Success           string  = "Success"
+)
+
+var AuthMethods = map[string]domain.AuthorizationMethod{
+	AuthMethod1: domain.OtpAuthorization,
+	AuthMethod2: domain.PinAuthorization,
 }
 
-var ValidDestination = map[int]string{
-	1: "10001",
-	2: "10002",
+var ValidTransactionCode = map[string]string{
+	TransactionCode1: TransactionCode1,
+	TransactionCode2: TransactionCode2,
+}
+
+var ValidDestination = map[string]string{
+	Destination1: Destination1,
+	Destination2: Destination2,
+}
+
+var TransactionState = map[domain.TransactionState]string{
+	domain.WaitAuthorization: WaitAuthorization,
+	domain.Success:           Success,
+	domain.Failed:            Failed,
 }
 
 var (

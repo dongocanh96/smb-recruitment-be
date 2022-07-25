@@ -16,13 +16,15 @@ type CreateTransactionService interface {
 }
 
 type CreateTransactionServiceImp struct {
-	userSession domain.UserSessionHelper
-	isOtp       domain.OtpCredentialManager
-	isPin       domain.PinCredentialManager
+	userSession          domain.UserSessionHelper
+	otpCredentialManager domain.OtpCredentialManager
+	pinCredentialManager domain.PinCredentialManager
 }
 
-func NewCreateTransactionService(userSession domain.UserSessionHelper, isOtp domain.OtpCredentialManager, isPin domain.PinCredentialManager) CreateTransactionService {
-	return &CreateTransactionServiceImp{userSession: userSession, isOtp: isOtp, isPin: isPin}
+func NewCreateTransactionService(userSession domain.UserSessionHelper, otpCredentialManager domain.OtpCredentialManager,
+	pinCredentialManager domain.PinCredentialManager) CreateTransactionService {
+	return &CreateTransactionServiceImp{userSession: userSession, otpCredentialManager: otpCredentialManager,
+		pinCredentialManager: pinCredentialManager}
 }
 
 func (service *CreateTransactionServiceImp) Invoke(dto *dto.CreateTransactionDto, r context.Context) (string, error) {
@@ -36,20 +38,15 @@ func (service *CreateTransactionServiceImp) Invoke(dto *dto.CreateTransactionDto
 	}
 
 	transaction := &domain.Transaction{
-		ID:                 uuid.New().String(),
-		UserID:             userSession.ID,
-		State:              domain.Success,
-		TransactionCode:    dto.TransactionCode,
-		Amount:             dto.Amount,
-		SourceAccount:      userSession.AccountReference,
-		DestinationAccount: dto.DestinationAccount,
-		CreatedAt:          time.Now().UTC(),
-	}
-
-	if dto.AuthMethod == alias.AuthMethod1 {
-		transaction.AuthorizationMethod = domain.OtpAuthorization
-	} else {
-		transaction.AuthorizationMethod = domain.PinAuthorization
+		ID:                  uuid.New().String(),
+		UserID:              userSession.ID,
+		State:               domain.WaitAuthorization,
+		AuthorizationMethod: alias.AuthMethods[dto.AuthMethod],
+		TransactionCode:     dto.TransactionCode,
+		Amount:              dto.Amount,
+		SourceAccount:       userSession.AccountReference,
+		DestinationAccount:  dto.DestinationAccount,
+		CreatedAt:           time.Now().UTC(),
 	}
 
 	if err = pg.Wrap(nil).Save(transaction); err != nil {
@@ -60,7 +57,7 @@ func (service *CreateTransactionServiceImp) Invoke(dto *dto.CreateTransactionDto
 }
 
 func (service *CreateTransactionServiceImp) validate(dto *dto.CreateTransactionDto, userSession domain.UserSession) error {
-	if err := GetTransactionPrivileges(dto.TransactionCode); err != nil {
+	if err := TransactionCodeValidate(dto.TransactionCode); err != nil {
 		return err
 	}
 
@@ -75,14 +72,16 @@ func (service *CreateTransactionServiceImp) validate(dto *dto.CreateTransactionD
 	if err := CheckValidMethod(dto.AuthMethod, userSession); err != nil {
 		return err
 	}
+
+	if err := service.RequestNewOtp(userSession); err != nil && dto.AuthMethod == alias.AuthMethod1 {
+		return err
+	}
 	return nil
 }
 
-func GetTransactionPrivileges(transactionCode string) error {
-	for _, code := range alias.ValidTransactionCode {
-		if transactionCode == code {
-			return nil
-		}
+func TransactionCodeValidate(transactionCode string) error {
+	if _, ok := alias.ValidTransactionCode[transactionCode]; ok {
+		return nil
 	}
 
 	return alias.ErrMessageTransactionCodeNotFound
@@ -96,10 +95,8 @@ func AmountValidate(amount float64) error {
 }
 
 func CheckDestination(destination string) error {
-	for _, destinationCode := range alias.ValidDestination {
-		if destination == destinationCode {
-			return nil
-		}
+	if _, ok := alias.ValidDestination[destination]; ok {
+		return nil
 	}
 
 	return alias.ErrMessageDestinationNotFound
@@ -116,5 +113,15 @@ func CheckValidMethod(authMethod string, user domain.UserSession) error {
 		return alias.ErrMessageMethodNotAllow
 	}
 
+	if authMethod != alias.AuthMethod1 && authMethod != alias.AuthMethod2 {
+		return alias.ErrMessageMethodNotAllow
+	}
+
+	return nil
+}
+func (service *CreateTransactionServiceImp) RequestNewOtp(userSession domain.UserSession) error {
+	if !userSession.ConfiguredTransactionCredential.IsOtpConfigured() {
+		return domain.ErrOtpNotConfigured
+	}
 	return nil
 }
