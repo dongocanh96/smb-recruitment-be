@@ -11,13 +11,14 @@ import (
 )
 
 func Register(container *dig.Container) {
-	container.Provide(func(userSession domain.UserSessionHelper,
-		isOtp domain.OtpCredentialManager, isPin domain.PinCredentialManager) services.CreateTransactionService {
-		return services.NewCreateTransactionService(userSession, isOtp, isPin)
+	container.Provide(func(userSession domain.UserSessionHelper, otpCredentialManager domain.OtpCredentialManager,
+		pinCredentialManager domain.PinCredentialManager) services.CreateTransactionService {
+		return services.NewCreateTransactionService(userSession, otpCredentialManager, pinCredentialManager)
 	})
 
-	container.Provide(func() services.VerifyTransactionService {
-		return services.NewVerifyTransactionService()
+	container.Provide(func(userSession domain.UserSessionHelper, otpCredentialManager domain.OtpCredentialManager,
+		pinCredentialManager domain.PinCredentialManager) services.VerifyTransactionService {
+		return services.NewVerifyTransactionService(userSession, otpCredentialManager, pinCredentialManager)
 	})
 
 	container.Provide(func(

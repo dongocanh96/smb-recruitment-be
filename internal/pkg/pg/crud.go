@@ -24,7 +24,6 @@ func (wrapper *CrudRepositoryWrapper) Save(model interface{}) error {
 }
 
 func (wrapper *CrudRepositoryWrapper) Load(model interface{}) error {
-
 	err := wrapper.db.Model(model).WherePK().Select()
 	return err
 }

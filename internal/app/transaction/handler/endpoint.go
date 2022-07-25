@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/tunaiku/mobilebanking/internal/app/transaction/alias"
 	"github.com/tunaiku/mobilebanking/internal/app/transaction/dto"
 	"github.com/tunaiku/mobilebanking/internal/app/transaction/services"
 	"net/http"
@@ -62,10 +63,45 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 }
 
 func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
 
-	render.JSON(w, r, &VerifyTransactionSuccess{})
+	_, err := transactionEndpoint.transactionService.GetTransaction(id)
+	if err != nil {
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+	}
+
+	userSession, err := transactionEndpoint.userSessionHelper.GetFromContext(r.Context())
+	if err != nil {
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+	}
+
+	verifyTransaction := VerifyTransactionRequest{}
+	err = verifyTransaction.Bind(r)
+	if err != nil {
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+	}
+
+	transaction := &dto.VerifyTransactionDto{
+		ID:         id,
+		Session:    userSession,
+		Credential: verifyTransaction.Credential,
+	}
+
+	err = transactionEndpoint.transactionService.VerifyTransaction(transaction, r.Context())
+	if err != nil {
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+	}
+
+	render.JSON(w, r, &VerifyTransactionSuccess{transaction.ID})
 }
 
 func (transactionEndpoint *TransactionEndpoint) HandleGetTransaction(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	transactionReq, err := transactionEndpoint.transactionService.GetTransaction(id)
+	if err != nil {
+		render.JSON(w, r, &TransactionHandlerFailed{Message: err.Error()})
+	}
 
+	render.JSON(w, r, &GetTransactionSuccess{id, transactionReq.Amount,
+		transactionReq.DestinationAccount, alias.TransactionState[transactionReq.State]})
 }
