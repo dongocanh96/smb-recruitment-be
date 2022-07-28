@@ -12,8 +12,8 @@ import (
 
 func Register(container *dig.Container) {
 	container.Provide(func(userSession domain.UserSessionHelper, otpCredentialManager domain.OtpCredentialManager,
-		pinCredentialManager domain.PinCredentialManager) services.CreateTransactionService {
-		return services.NewCreateTransactionService(userSession, otpCredentialManager, pinCredentialManager)
+	) services.CreateTransactionService {
+		return services.NewCreateTransactionService(userSession, otpCredentialManager)
 	})
 
 	container.Provide(func(userSession domain.UserSessionHelper, otpCredentialManager domain.OtpCredentialManager,

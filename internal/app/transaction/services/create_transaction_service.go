@@ -18,13 +18,11 @@ type CreateTransactionService interface {
 type CreateTransactionServiceImp struct {
 	userSession          domain.UserSessionHelper
 	otpCredentialManager domain.OtpCredentialManager
-	pinCredentialManager domain.PinCredentialManager
 }
 
 func NewCreateTransactionService(userSession domain.UserSessionHelper, otpCredentialManager domain.OtpCredentialManager,
-	pinCredentialManager domain.PinCredentialManager) CreateTransactionService {
-	return &CreateTransactionServiceImp{userSession: userSession, otpCredentialManager: otpCredentialManager,
-		pinCredentialManager: pinCredentialManager}
+) CreateTransactionService {
+	return &CreateTransactionServiceImp{userSession: userSession, otpCredentialManager: otpCredentialManager}
 }
 
 func (service *CreateTransactionServiceImp) Invoke(dto *dto.CreateTransactionDto, r context.Context) (string, error) {
@@ -37,11 +35,18 @@ func (service *CreateTransactionServiceImp) Invoke(dto *dto.CreateTransactionDto
 		return "", err
 	}
 
+	authMethod := domain.UnknownAuthorizationMethod
+	if dto.AuthMethod == alias.AuthMethod1 {
+		authMethod = domain.OtpAuthorization
+	} else {
+		authMethod = domain.PinAuthorization
+	}
+
 	transaction := &domain.Transaction{
 		ID:                  uuid.New().String(),
 		UserID:              userSession.ID,
 		State:               domain.WaitAuthorization,
-		AuthorizationMethod: alias.AuthMethods[dto.AuthMethod],
+		AuthorizationMethod: authMethod,
 		TransactionCode:     dto.TransactionCode,
 		Amount:              dto.Amount,
 		SourceAccount:       userSession.AccountReference,
@@ -57,11 +62,11 @@ func (service *CreateTransactionServiceImp) Invoke(dto *dto.CreateTransactionDto
 }
 
 func (service *CreateTransactionServiceImp) validate(dto *dto.CreateTransactionDto, userSession domain.UserSession) error {
-	if err := TransactionCodeValidate(dto.TransactionCode); err != nil {
+	if err := ValidateTransactionCode(dto.TransactionCode); err != nil {
 		return err
 	}
 
-	if err := AmountValidate(dto.Amount); err != nil {
+	if err := ValidateAmount(dto.Amount); err != nil {
 		return err
 	}
 
@@ -79,7 +84,7 @@ func (service *CreateTransactionServiceImp) validate(dto *dto.CreateTransactionD
 	return nil
 }
 
-func TransactionCodeValidate(transactionCode string) error {
+func ValidateTransactionCode(transactionCode string) error {
 	if _, ok := alias.ValidTransactionCode[transactionCode]; ok {
 		return nil
 	}
@@ -87,7 +92,7 @@ func TransactionCodeValidate(transactionCode string) error {
 	return alias.ErrMessageTransactionCodeNotFound
 }
 
-func AmountValidate(amount float64) error {
+func ValidateAmount(amount float64) error {
 	if amount < alias.MinimumAmount {
 		return alias.ErrMessageAmountTooLow
 	}
@@ -103,25 +108,23 @@ func CheckDestination(destination string) error {
 }
 
 func CheckValidMethod(authMethod string, user domain.UserSession) error {
-	if user.ConfiguredTransactionCredential.Otp != nil &&
-		authMethod != alias.AuthMethod1 {
-		return alias.ErrMessageMethodNotAllow
+	if authMethod == alias.AuthMethod1 && user.ConfiguredTransactionCredential.Otp == nil {
+		return alias.ErrMessageMethodNotConfigured
 	}
 
-	if user.ConfiguredTransactionCredential.Pin != nil &&
-		authMethod != alias.AuthMethod2 {
-		return alias.ErrMessageMethodNotAllow
+	if authMethod == alias.AuthMethod2 && user.ConfiguredTransactionCredential.Pin == nil {
+		return alias.ErrMessageMethodNotConfigured
 	}
 
 	if authMethod != alias.AuthMethod1 && authMethod != alias.AuthMethod2 {
-		return alias.ErrMessageMethodNotAllow
+		return alias.ErrMessageMethodNotSupported
 	}
 
 	return nil
 }
 func (service *CreateTransactionServiceImp) RequestNewOtp(userSession domain.UserSession) error {
 	if !userSession.ConfiguredTransactionCredential.IsOtpConfigured() {
-		return domain.ErrOtpNotConfigured
+		return alias.ErrMessageOtpNotConfigured
 	}
 	return nil
 }
