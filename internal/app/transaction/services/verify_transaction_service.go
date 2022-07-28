@@ -42,11 +42,11 @@ func (service *VerifyTransactionServiceImp) Invoke(dto *dto.VerifyTransactionDto
 
 func validateOtp(userSession domain.UserSession, credential string) error {
 	if !userSession.ConfiguredTransactionCredential.IsOtpConfigured() {
-		return domain.ErrOtpNotConfigured
+		return alias.ErrMessageOtpNotConfigured
 	}
 
 	if credential != alias.DefaultOtp {
-		return domain.ErrCredentialNotMatch
+		return alias.ErrMessageInvalidCredential
 	}
 
 	return nil
@@ -55,11 +55,11 @@ func validateOtp(userSession domain.UserSession, credential string) error {
 
 func validatePin(userSession domain.UserSession, credential string) error {
 	if !userSession.ConfiguredTransactionCredential.IsPinConfigured() {
-		return domain.ErrPinNotConfigured
+		return alias.ErrMessagePinNotConfigured
 	}
 
 	if credential != alias.DefaultPin {
-		return domain.ErrCredentialNotMatch
+		return alias.ErrMessageInvalidCredential
 	}
 
 	return nil
